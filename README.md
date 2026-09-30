@@ -167,3 +167,4 @@ This project was built with assistance from Kiro AI:
 - **Used for:** Architecture design, code generation, test suite, UI styling
 - **Verified:** 30-second timeout logic, API behavior, device registration flow
 - **Changed:** Improved status computation with background sweep, enhanced UI animations
+- **Chats:** Find the chat used to develop this application in the kiro-session-sess_7645079e-ba26-4aa6-b8a2-2d781d23c2ff.zip file
