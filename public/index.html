@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Fleet Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e2e8f0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #f1f5f9;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 1.1em;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.8) 100%);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .summary-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .summary-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .summary-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .summary-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .summary-card h3 {
+            color: #cbd5e1;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .summary-card .value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #60a5fa;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes statusChange {
+            0% {
+                background: rgba(96, 165, 250, 0.2);
+                transform: scale(1);
+            }
+            50% {
+                background: rgba(96, 165, 250, 0.4);
+                transform: scale(1.02);
+            }
+            100% {
+                background: transparent;
+                transform: scale(1);
+            }
+        }
+
+        .summary-card.online .value {
+            color: #4ade80;
+        }
+
+        .summary-card.offline .value {
+            color: #f87171;
+        }
+
+        .devices-section {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .devices-section h2 {
+            color: #f1f5f9;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .registration-form {
+            background: linear-gradient(135deg, rgba(51, 65, 85, 0.3) 0%, rgba(30, 41, 59, 0.5) 100%);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            animation: slideDown 0.6s ease-out 0.1s both;
+        }
+
+        .registration-form h3 {
+            color: #cbd5e1;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .form-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.95em;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-input::placeholder {
+            color: #64748b;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #60a5fa;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.2);
+        }
+
+        .register-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .register-btn:active {
+            transform: translateY(0px);
+        }
+
+        #registration-message {
+            margin-top: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        #registration-message.success {
+            display: block;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.3) 100%);
+            color: #86efac;
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        #registration-message.error {
+            display: block;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .controls button {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideInLeft 0.6s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .controls button:active {
+            transform: translateY(0px);
+        }
+
+        .controls button.pause {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .controls button.pause:hover {
+            box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
+        }
+
+        .refresh-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            color: #cbd5e1;
+            font-size: 0.9em;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(96, 165, 250, 0.3);
+            border-top: 2px solid #60a5fa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .devices-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+        }
+
+        .devices-table thead {
+            background: rgba(51, 65, 85, 0.5);
+            border-bottom: 2px solid rgba(96, 165, 250, 0.3);
+        }
+
+        .devices-table th {
+            padding: 15px;
+            text-align: left;
+            color: #cbd5e1;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(96, 165, 250, 0.3);
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+
+        .devices-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+
+        .devices-table tbody tr {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .devices-table tbody tr:hover {
+            background: rgba(96, 165, 250, 0.1);
+            transform: scaleX(1.01);
+            box-shadow: inset 0 0 20px rgba(96, 165, 250, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-badge.online {
+            background: linear-gradient(135deg, rgba(74, 222, 128, 0.2) 0%, rgba(34, 197, 94, 0.3) 100%);
+            color: #86efac;
+            border: 1px solid rgba(74, 222, 128, 0.5);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
+            animation: glow-green 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-green {
+            0%, 100% {
+                box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(74, 222, 128, 0.4);
+            }
+        }
+
+        .status-badge.offline {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.2) 0%, rgba(239, 68, 68, 0.3) 100%);
+            color: #fca5a5;
+            border: 1px solid rgba(248, 113, 113, 0.5);
+            box-shadow: 0 4px 12px rgba(248, 113, 113, 0.2);
+            animation: glow-red 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-red {
+            0%, 100% {
+                box-shadow: 0 4px 12px rgba(248, 113, 113, 0.2);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(248, 113, 113, 0.4);
+            }
+        }
+
+        .last-heartbeat {
+            color: #94a3b8;
+            font-size: 0.9em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #cbd5e1;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .auto-refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            animation: slideInLeft 0.6s ease-out 0.1s both;
+        }
+
+        .auto-refresh-toggle label {
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            border-color: rgba(74, 222, 128, 0.5);
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .toggle-switch.active::after {
+            left: 28px;
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(203, 213, 225, 0.6);
+            margin-top: 50px;
+            font-size: 0.9em;
+            animation: fadeIn 0.6s ease-out 0.4s both;
+        }
+
+        .footer a {
+            color: #60a5fa;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: #a78bfa;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border-radius: 15px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.4s ease-out;
+            position: relative;
+        }
+
+        .modal-content h2 {
+            color: #f1f5f9;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #f87171;
+        }
+
+        .modal-body {
+            margin-bottom: 30px;
+        }
+
+        .detail-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(96, 165, 250, 0.2);
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .detail-section:last-child {
+            border-bottom: none;
+        }
+
+        .detail-section label {
+            color: #60a5fa;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .detail-section p {
+            color: #e2e8f0;
+            font-size: 1.1em;
+            word-break: break-all;
+            padding: 10px 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.7) 100%);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .metric-card:hover {
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 0 15px rgba(96, 165, 250, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .metric-name {
+            color: #cbd5e1;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .metric-value {
+            color: #60a5fa;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-close-btn {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(100, 116, 139, 0.3);
+        }
+
+        .modal-close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(100, 116, 139, 0.4);
+        }
+
+        /* Make table rows clickable */
+        .devices-table tbody tr {
+            cursor: pointer;
+        }
+
+        .devices-table tbody tr:hover {
+            background: rgba(96, 165, 250, 0.15);
+        }
+
+        /* Device Menu Styles */
+        .device-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .menu-btn {
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn:hover {
+            background: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 35px;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            min-width: 180px;
+            z-index: 100;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        .menu-dropdown.show {
+            display: block;
+        }
+
+        .menu-item {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            color: #e2e8f0;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.2s ease;
+            border-radius: 0;
+        }
+
+        .menu-item:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .menu-item:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        .menu-item:hover {
+            background: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+        }
+
+        .menu-item.delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-card {
+                padding: 20px;
+            }
+
+            .devices-section {
+                padding: 20px;
+            }
+
+            .registration-form {
+                padding: 15px;
+            }
+
+            .form-group {
+                flex-direction: column;
+            }
+
+            .form-input {
+                width: 100%;
+                min-width: unset;
+            }
+
+            .register-btn {
+                width: 100%;
+            }
+
+            .devices-table {
+                font-size: 0.9em;
+            }
+
+            .devices-table th,
+            .devices-table td {
+                padding: 10px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .controls button {
+                width: 100%;
+            }
+
+            .refresh-status {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .auto-refresh-toggle {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 25px;
+                max-height: 90vh;
+            }
+
+            .modal-content h2 {
+                font-size: 1.4em;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .detail-section {
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Device Fleet Monitor</h1>
+            <p class="subtitle">Real-time monitoring of device heartbeats and status</p>
+        </header>
+
+        <div class="error" id="error"></div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h3>Total Devices</h3>
+                <div class="value" id="total-devices">-</div>
+            </div>
+            <div class="summary-card online">
+                <h3>Online</h3>
+                <div class="value" id="online-count">-</div>
+            </div>
+            <div class="summary-card offline">
+                <h3>Offline</h3>
+                <div class="value" id="offline-count">-</div>
+            </div>
+        </div>
+
+        <!-- Devices Section -->
+        <div class="devices-section">
+            <h2>Devices</h2>
+
+            <!-- Device Registration Form -->
+            <div class="registration-form">
+                <h3>Register New Device</h3>
+                <div class="form-group">
+                    <input type="text" id="device-id" placeholder="Device ID (e.g., device-06)" class="form-input">
+                    <input type="text" id="device-name" placeholder="Device Name (e.g., Lab Device 6)" class="form-input">
+                    <button onclick="registerNewDevice()" class="register-btn">+ Add Device</button>
+                </div>
+                <div id="registration-message"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button onclick="refreshData()">🔄 Refresh Now</button>
+                <div class="auto-refresh-toggle">
+                    <label for="auto-refresh">Auto-refresh:</label>
+                    <div class="toggle-switch active" id="auto-refresh" onclick="toggleAutoRefresh()"></div>
+                </div>
+                <div class="refresh-status">
+                    <span class="spinner" id="spinner"></span>
+                    <span id="last-update">Updating...</span>
+                </div>
+            </div>
+
+            <!-- Devices Table -->
+            <div id="devices-container">
+                <div class="loading">Loading devices...</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Device Fleet Monitor • Auto-refreshes every 3 seconds • API: localhost:3000</p>
+        </div>
+    </div>
+
+    <!-- Device Details Modal -->
+    <div id="device-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeDeviceModal()">&times;</span>
+            <h2 id="modal-device-id">Device Details</h2>
+            
+            <div class="modal-body">
+                <div class="detail-section">
+                    <label>Device ID:</label>
+                    <p id="modal-id"></p>
+                </div>
+
+                <div class="detail-section">
+                    <label>Device Name:</label>
+                    <p id="modal-name"></p>
+                </div>
+
+                <div class="detail-section">
+                    <label>Status:</label>
+                    <p id="modal-status"></p>
+                </div>
+
+                <div class="detail-section">
+                    <label>Last Heartbeat:</label>
+                    <p id="modal-heartbeat"></p>
+                </div>
+
+                <div class="detail-section">
+                    <label>Metrics:</label>
+                    <div id="modal-metrics" class="metrics-grid"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button onclick="closeDeviceModal()" class="modal-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefresh = true;
+        let refreshInterval = null;
+        let deviceStates = new Map(); // Track device states to detect changes
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Dashboard loaded, fetching data...');
+            refreshData();
+            startAutoRefresh();
+        });
+
+        /**
+         * Register a new device
+         */
+        async function registerNewDevice() {
+            const deviceId = document.getElementById('device-id').value.trim();
+            const deviceName = document.getElementById('device-name').value.trim();
+            const messageEl = document.getElementById('registration-message');
+
+            // Validation
+            if (!deviceId || !deviceName) {
+                messageEl.textContent = 'Please enter both Device ID and Device Name';
+                messageEl.className = 'error';
+                return;
+            }
+
+            if (deviceId.length < 3) {
+                messageEl.textContent = 'Device ID must be at least 3 characters';
+                messageEl.className = 'error';
+                return;
+            }
+
+            try {
+                messageEl.textContent = 'Registering device...';
+                messageEl.className = '';
+
+                const response = await fetch('/devices', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: deviceId,
+                        name: deviceName
+                    })
+                });
+
+                if (response.status === 201) {
+                    const device = await response.json();
+                    console.log('Device registered:', device);
+                    
+                    messageEl.textContent = `✓ Device "${deviceId}" registered successfully!`;
+                    messageEl.className = 'success';
+
+                    // Clear form
+                    document.getElementById('device-id').value = '';
+                    document.getElementById('device-name').value = '';
+
+                    // Refresh data
+                    setTimeout(() => {
+                        refreshData();
+                        messageEl.className = '';
+                    }, 2000);
+                } else if (response.status === 409) {
+                    messageEl.textContent = `✗ Device "${deviceId}" already exists`;
+                    messageEl.className = 'error';
+                } else {
+                    const data = await response.json();
+                    messageEl.textContent = `✗ Error: ${data.error}`;
+                    messageEl.className = 'error';
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                messageEl.textContent = `✗ Error: ${error.message}`;
+                messageEl.className = 'error';
+            }
+        }
+
+        /**
+         * Handle Enter key in form inputs
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const deviceIdInput = document.getElementById('device-id');
+            const deviceNameInput = document.getElementById('device-name');
+
+            if (deviceIdInput) {
+                deviceIdInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') registerNewDevice();
+                });
+            }
+
+            if (deviceNameInput) {
+                deviceNameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') registerNewDevice();
+                });
+            }
+        });
+
+        /**
+         * Toggle device menu dropdown
+         */
+        function toggleMenu(event, deviceId) {
+            event.stopPropagation();
+            const menu = document.getElementById(`menu-${deviceId}`);
+            
+            // Close all other menus
+            document.querySelectorAll('.menu-dropdown.show').forEach(m => {
+                if (m.id !== `menu-${deviceId}`) {
+                    m.classList.remove('show');
+                }
+            });
+            
+            // Toggle current menu
+            menu.classList.toggle('show');
+        }
+
+        /**
+         * Delete a device
+         */
+        async function deleteDevice(deviceId, deviceName) {
+            // Confirm deletion
+            const confirmed = confirm(`Are you sure you want to delete "${deviceName}" (${deviceId})?\n\nThis action cannot be undone. All device data will be permanently removed.`);
+            
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch(`/devices/${deviceId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    console.log(`Device ${deviceId} deleted successfully`);
+                    
+                    // Show success message
+                    const messageEl = document.getElementById('registration-message');
+                    messageEl.textContent = `✓ Device "${deviceName}" has been deleted`;
+                    messageEl.className = 'success';
+                    
+                    // Close menu
+                    document.getElementById(`menu-${deviceId}`).classList.remove('show');
+                    
+                    // Refresh data after 1 second
+                    setTimeout(() => {
+                        refreshData();
+                        messageEl.className = '';
+                    }, 1500);
+                } else if (response.status === 404) {
+                    alert('Device not found');
+                } else {
+                    const data = await response.json();
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert(`Error deleting device: ${error.message}`);
+            }
+        }
+
+        /**
+         * Close menus when clicking outside
+         */
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.device-menu')) {
+                document.querySelectorAll('.menu-dropdown.show').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+
+        /**
+         * Open device details modal
+         */
+        async function openDeviceModal(deviceId) {
+            try {
+                const response = await fetch(`/devices/${deviceId}`);
+                if (!response.ok) throw new Error('Failed to fetch device details');
+                const device = await response.json();
+
+                // Populate modal with device details
+                document.getElementById('modal-device-id').textContent = `Device: ${device.id}`;
+                document.getElementById('modal-id').textContent = device.id;
+                document.getElementById('modal-name').textContent = device.name;
+                
+                const statusClass = device.status === 'ONLINE' ? 'online' : 'offline';
+                document.getElementById('modal-status').innerHTML = 
+                    `<span class="status-badge ${statusClass}">${device.status}</span>`;
+                
+                document.getElementById('modal-heartbeat').textContent = 
+                    new Date(device.last_heartbeat).toLocaleString();
+
+                // Display metrics
+                const metricsContainer = document.getElementById('modal-metrics');
+                metricsContainer.innerHTML = '';
+
+                if (device.metrics && Object.keys(device.metrics).length > 0) {
+                    for (const [key, value] of Object.entries(device.metrics)) {
+                        if (value !== undefined && value !== null) {
+                            const metricCard = document.createElement('div');
+                            metricCard.className = 'metric-card';
+                            metricCard.innerHTML = `
+                                <div class="metric-name">${formatMetricName(key)}</div>
+                                <div class="metric-value">${value}${getMetricUnit(key)}</div>
+                            `;
+                            metricsContainer.appendChild(metricCard);
+                        }
+                    }
+                } else {
+                    metricsContainer.innerHTML = '<p style="color: #94a3b8;">No metrics available</p>';
+                }
+
+                // Show modal
+                document.getElementById('device-modal').classList.add('show');
+            } catch (error) {
+                console.error('Error fetching device details:', error);
+                alert('Error loading device details: ' + error.message);
+            }
+        }
+
+        /**
+         * Close device details modal
+         */
+        function closeDeviceModal() {
+            document.getElementById('device-modal').classList.remove('show');
+        }
+
+        /**
+         * Format metric name for display
+         */
+        function formatMetricName(key) {
+            return key
+                .replace(/_/g, ' ')
+                .replace(/([A-Z])/g, ' $1')
+                .trim()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+
+        /**
+         * Get metric unit
+         */
+        function getMetricUnit(key) {
+            const units = {
+                'cpu_usage': '%',
+                'memory_usage': 'MB',
+                'temperature': '°C',
+                'signal_strength': 'dBm'
+            };
+            return units[key] || '';
+        }
+
+        /**
+         * Close modal when clicking outside
+         */
+        window.onclick = function(event) {
+            const modal = document.getElementById('device-modal');
+            if (event.target === modal) {
+                closeDeviceModal();
+            }
+        }
+
+        /**
+         * Handle device row click
+         */
+        function setupDeviceRowClickHandlers() {
+            setTimeout(() => {
+                const rows = document.querySelectorAll('.devices-table tbody tr');
+                rows.forEach(row => {
+                    row.style.cursor = 'pointer';
+                    row.onclick = function(e) {
+                        if (e.target.tagName !== 'BUTTON') {
+                            const deviceId = row.querySelector('td:first-child').textContent.trim();
+                            openDeviceModal(deviceId);
+                        }
+                    };
+                });
+            }, 100);
+        }
+
+        /**
+         * Fetch and display fleet summary and devices
+         */
+        async function refreshData() {
+            try {
+                console.log('Fetching data from API...');
+                // Hide error
+                hideError();
+
+                // Fetch summary
+                const summaryRes = await fetch('/devices/summary');
+                if (!summaryRes.ok) throw new Error('Failed to fetch summary');
+                const summary = await summaryRes.json();
+                console.log('Summary:', summary);
+
+                // Update summary cards
+                document.getElementById('total-devices').textContent = summary.total;
+                document.getElementById('online-count').textContent = summary.online;
+                document.getElementById('offline-count').textContent = summary.offline;
+
+                // Fetch devices list
+                const devicesRes = await fetch('/devices');
+                if (!devicesRes.ok) throw new Error('Failed to fetch devices');
+                const devices = await devicesRes.json();
+                console.log('Devices:', devices);
+
+                // Update devices intelligently (only update on status changes)
+                updateDevicesIntelligently(devices);
+
+                // Update last refresh time
+                updateLastRefreshTime();
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Failed to load data: ${error.message}`);
+            }
+        }
+
+        /**
+         * Update devices intelligently - only update when status changes
+         */
+        function updateDevicesIntelligently(devices) {
+            const container = document.getElementById('devices-container');
+
+            // First render: create table if it doesn't exist
+            if (deviceStates.size === 0) {
+                console.log('First render: creating device table');
+                renderDevices(devices);
+                
+                // Store initial states
+                devices.forEach(device => {
+                    deviceStates.set(device.id, device.status);
+                });
+                return;
+            }
+
+            // Subsequent renders: only update if status changed
+            let hasChanges = false;
+            const deviceMap = new Map(devices.map(d => [d.id, d]));
+
+            // Check for status changes
+            for (const [deviceId, oldStatus] of deviceStates) {
+                const newDevice = deviceMap.get(deviceId);
+                if (newDevice && newDevice.status !== oldStatus) {
+                    console.log(`Status change: ${deviceId} ${oldStatus} → ${newDevice.status}`);
+                    hasChanges = true;
+                    deviceStates.set(deviceId, newDevice.status);
+                    updateDeviceRow(newDevice);
+                }
+            }
+
+            // Check for new devices
+            for (const device of devices) {
+                if (!deviceStates.has(device.id)) {
+                    console.log(`New device: ${device.id}`);
+                    hasChanges = true;
+                    deviceStates.set(device.id, device.status);
+                }
+            }
+
+            // If there are changes, re-render the entire table
+            if (hasChanges) {
+                console.log('Status changes detected, re-rendering table');
+                renderDevices(devices);
+            } else {
+                // No status changes: just update heartbeat times
+                console.log('No status changes, updating heartbeat times only');
+                updateHeartbeatTimesOnly(devices);
+            }
+        }
+
+        /**
+         * Update only the heartbeat times without re-rendering
+         */
+        function updateHeartbeatTimesOnly(devices) {
+            const rows = document.querySelectorAll('.devices-table tbody tr');
+            
+            rows.forEach((row, index) => {
+                if (index < devices.length) {
+                    const device = devices[index];
+                    const heartbeatCell = row.querySelector('.last-heartbeat');
+                    const metricsCell = row.querySelector('.metrics-cell');
+                    
+                    if (heartbeatCell) {
+                        heartbeatCell.textContent = formatTime(device.last_heartbeat);
+                    }
+                    
+                    if (metricsCell) {
+                        metricsCell.innerHTML = formatMetrics(device.metrics || {});
+                    }
+                }
+            });
+        }
+
+        /**
+         * Update a single device row when status changes
+         */
+        function updateDeviceRow(device) {
+            const rows = document.querySelectorAll('.devices-table tbody tr');
+            
+            for (const row of rows) {
+                if (row.querySelector('td:first-child').textContent.trim() === device.id) {
+                    const statusCell = row.querySelector('.status-badge');
+                    const heartbeatCell = row.querySelector('.last-heartbeat');
+                    
+                    // Update status badge
+                    statusCell.className = `status-badge ${device.status === 'ONLINE' ? 'online' : 'offline'}`;
+                    statusCell.textContent = device.status;
+                    
+                    // Update heartbeat
+                    if (heartbeatCell) {
+                        heartbeatCell.textContent = formatTime(device.last_heartbeat);
+                    }
+                    
+                    // Add animation for status change
+                    row.style.animation = 'none';
+                    setTimeout(() => {
+                        row.style.animation = 'pulse 0.6s ease-in-out';
+                    }, 10);
+                    
+                    break;
+                }
+            }
+        }
+
+        /**
+         * Render devices table
+         */
+        function renderDevices(devices) {
+            const container = document.getElementById('devices-container');
+
+            if (!devices || devices.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No devices registered yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="devices-table">
+                    <thead>
+                        <tr>
+                            <th>Device ID</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Last Heartbeat</th>
+                            <th>Metrics</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            devices.forEach(device => {
+                const statusClass = device.status === 'ONLINE' ? 'online' : 'offline';
+                const lastHeartbeat = formatTime(device.last_heartbeat);
+                const metrics = formatMetrics(device.metrics || {});
+
+                html += `
+                    <tr>
+                        <td><strong>${escapeHtml(device.id)}</strong></td>
+                        <td>${escapeHtml(device.name)}</td>
+                        <td>
+                            <span class="status-badge ${statusClass}">
+                                ${device.status}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="last-heartbeat">${lastHeartbeat}</span>
+                        </td>
+                        <td>
+                            <span class="metrics-cell" style="font-size: 0.85em; color: #94a3b8;">
+                                ${metrics || '-'}
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="device-menu">
+                                <button class="menu-btn" onclick="toggleMenu(event, '${device.id}')">⋮</button>
+                                <div class="menu-dropdown" id="menu-${device.id}">
+                                    <button class="menu-item delete" onclick="deleteDevice('${device.id}', '${escapeHtml(device.name)}')">
+                                        🗑️ Delete Device
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+            setupDeviceRowClickHandlers();
+        }
+
+        /**
+         * Format timestamp to relative time
+         */
+        function formatTime(isoString) {
+            try {
+                const date = new Date(isoString);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffSecs = Math.floor(diffMs / 1000);
+                const diffMins = Math.floor(diffSecs / 60);
+
+                if (diffSecs < 60) {
+                    return `${diffSecs}s ago`;
+                } else if (diffMins < 60) {
+                    return `${diffMins}m ago`;
+                } else {
+                    return date.toLocaleTimeString();
+                }
+            } catch (e) {
+                return isoString;
+            }
+        }
+
+        /**
+         * Format metrics object
+         */
+        function formatMetrics(metrics) {
+            if (!metrics || Object.keys(metrics).length === 0) {
+                return '-';
+            }
+
+            const parts = [];
+            if (metrics.cpu_usage !== undefined) {
+                parts.push(`CPU: ${metrics.cpu_usage}%`);
+            }
+            if (metrics.signal_strength !== undefined) {
+                parts.push(`Signal: ${metrics.signal_strength}dBm`);
+            }
+
+            return parts.join(' • ') || '-';
+        }
+
+        /**
+         * Update last refresh time display
+         */
+        function updateLastRefreshTime() {
+            const now = new Date();
+            const time = now.toLocaleTimeString();
+            document.getElementById('last-update').textContent = `Last update: ${time}`;
+        }
+
+        /**
+         * Start auto-refresh
+         */
+        function startAutoRefresh() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(() => {
+                if (autoRefresh) {
+                    refreshData();
+                }
+            }, 3000); // Refresh every 3 seconds
+        }
+
+        /**
+         * Toggle auto-refresh
+         */
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            const toggle = document.getElementById('auto-refresh');
+            toggle.classList.toggle('active');
+
+            if (autoRefresh) {
+                startAutoRefresh();
+                showMessage('Auto-refresh enabled');
+            } else {
+                if (refreshInterval) clearInterval(refreshInterval);
+                showMessage('Auto-refresh disabled');
+            }
+        }
+
+        /**
+         * Show error message
+         */
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+
+        /**
+         * Hide error message
+         */
+        function hideError() {
+            const errorEl = document.getElementById('error');
+            errorEl.classList.remove('show');
+        }
+
+        /**
+         * Show temporary message
+         */
+        function showMessage(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = message;
+            errorEl.style.background = '#c8e6c9';
+            errorEl.style.color = '#2e7d32';
+            errorEl.classList.add('show');
+
+            setTimeout(() => {
+                errorEl.classList.remove('show');
+                errorEl.style.background = '';
+                errorEl.style.color = '';
+            }, 3000);
+        }
+
+        /**
+         * Escape HTML special characters
+         */
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>
