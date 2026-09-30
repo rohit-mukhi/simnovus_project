@@ -173,15 +173,19 @@ This project was built with assistance from Kiro AI:
 ## Other details
 
 - Which AI tools you used?
+- 
   I used Kiro IDE with Claude Haiku model. For troubleshooting, Google Gemini was used.
   
-- What you used them for
+- What you used them for?
+- 
   I used to auto generate code fast. It has built in chat functionality so I can get the context of what is being coded and ask questions if the implementation is going according to my intentions.
   
-- One suggestion or piece of generated code that you changed, rejected, or improved
+- One suggestion or piece of generated code that you changed, rejected, or improved?
+- 
   I changed the way how devices were being monitored. Initially every device was showing online, but I added the functionality that only when a heartbeat is received that it will be shown online. This gives correct reading of devices.
   
-- One thing you personally verified before submitting
+- One thing you personally verified before submitting?
+- 
   One thing I personally verified was that when a new device was being added, they were shown online by default. I changed this behavior so that only when a heartbeat is received do the devices are tagged as online.
   
 
