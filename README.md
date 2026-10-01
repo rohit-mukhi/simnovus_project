@@ -1,7 +1,7 @@
 # Device Fleet Monitor
 
 A real-time monitoring application that tracks a fleet of devices. Each device sends periodic heartbeats to the application. The application displays device status (ONLINE/OFFLINE) on a web dashboard.
-The app currently runs on localhost. This can be deployed for globally accesible.
+The app currently runs on localhost. This can be deployed for global accesibility.
 
 ## Features
 
